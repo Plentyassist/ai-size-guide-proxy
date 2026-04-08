@@ -65,6 +65,7 @@ Produktmaße: ${JSON.stringify(measurements)}
 Regeln:
 - Halbmaße (half:true) müssen verdoppelt werden um den Umfang zu erhalten
 - BH-Größe (z.B. 75C): Unterbrustmaß + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
+- Figurtypen: A-Typ=schmale Schultern breite Hüfte; H-Typ=Rechteck kaum Taillendefinition; O-Typ=rund Bauch dominiert; V-Typ=breite Schultern schmale Hüfte; X-Form/Sanduhr=definierte Taille Brust und Hüfte ähnlich. Wenn kein Figurtyp angegeben ignoriere dieses Feld. Nutze den Figurtyp für konstruktive Hinweise im fitNote.
 - Berücksichtige construction_notes und fit_guidance aus den Produktdaten
 - Dehnlogik: 5% Elastan = ca. 10% Dehnung. Ein Produktmaß das bis zu 5% kleiner ist als der Körperwert sitzt IDEAL. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Größe bei der das Produktmaß mindestens 92% des Körperwertes erreicht.
 - WICHTIGSTE REGEL: Das Feld "recommendedSize" MUSS exakt die Größe enthalten die du im Erklärungstext als beste Wahl nennst. Die "alternativeSize" MUSS die nächstgrößere Größe nach recommendedSize sein — niemals eine Größe überspringen. Prüfe dies vor der Ausgabe nochmals explizit.
