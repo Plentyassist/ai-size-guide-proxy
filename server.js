@@ -31,10 +31,23 @@ function extractPrimarySize(text) {
   return null;
 }
 
+function isValidAlternative(recommended, alternative, availableSizes) {
+  var recIdx = availableSizes.indexOf(recommended);
+  var altIdx = availableSizes.indexOf(alternative);
+  if (recIdx === -1 || altIdx === -1) return false;
+  return Math.abs(recIdx - altIdx) === 1;
+}
+
 function getNextSize(size, sizes) {
   var idx = sizes.indexOf(size);
   if (idx === -1 || idx === sizes.length - 1) return null;
   return sizes[idx + 1];
+}
+
+function getPrevSize(size, sizes) {
+  var idx = sizes.indexOf(size);
+  if (idx <= 0) return null;
+  return sizes[idx - 1];
 }
 
 app.post('/api/size-recommendation', async (req, res) => {
@@ -61,12 +74,12 @@ Produktmasse: ${JSON.stringify(measurements)}
 
 Regeln:
 - Halbmasse (half:true) muessen verdoppelt werden um den Umfang zu erhalten
-- Taillenumfang-Schaetzung wenn nicht angegeben: Bei X-Form/Sanduhr ca. 65-70% des Brustumfangs. Bei H-Typ ca. 85-90%. Bei A-Typ ca. 75-80%. Nutze diese Schaetzung nur wenn kein Taillenumfang angegeben.
 - BH-Groesse (z.B. 75C): Unterbrustmass + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
 - Figurtypen: A-Typ=schmale Schultern breite Huefte; H-Typ=Rechteck kaum Taillendefinition; O-Typ=rund Bauch dominiert; V-Typ=breite Schultern schmale Huefte; X-Form/Sanduhr=definierte Taille Brust und Huefte aehnlich. Wenn kein Figurtyp angegeben ignoriere dieses Feld. Nutze den Figurtyp fuer konstruktive Hinweise im fitNote.
 - Beruecksichtige construction_notes und fit_guidance aus den Produktdaten
-- Dehnlogik: 5% Elastan = ca. 10% Dehnung. Ein Produktmass das bis zu 5% kleiner ist als der Koerperwert sitzt IDEAL. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Groesse bei der das Produktmass mindestens 92% des Koerperwertes erreicht. Bei Strickware mit Elastan ist 92-96% der ideale Bereich — das ist kein Grenzfall sondern der gewuenschte Sitz. Nur wenn das Produktmass unter 92% liegt ist die Groesse zu klein.
-- WICHTIGSTE REGEL: Das Feld recommendedSize MUSS exakt die Groesse enthalten die du im Erklaerungstext als beste Wahl nennst. Die alternativeSize MUSS die naechstgroessere Groesse nach recommendedSize sein. Pruefe dies vor der Ausgabe.
+- Dehnlogik: Bei Elastan-Anteil dehnt sich der Stoff. Ein Produktmass das bis zu 5% kleiner ist als der Koerperwert sitzt IDEAL koerpernah. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Groesse bei der das Produktmass mindestens 92% des Koerperwertes erreicht — das ist kein Grenzfall sondern der ideale Sitz.
+- ALTERNATIVE GROESSE: Bei Elastan-Kleidern tendiere zur naechst-kleineren Groesse als Alternative (koerpernaher Sitz ist bei Elastan angenehmer als zu weiter Sitz). Nur wenn die naechst-kleinere Groesse unter 90% des Koerperwertes liegt, waehle die naechst-groessere als Alternative.
+- WICHTIGSTE REGEL: Das Feld recommendedSize MUSS exakt die Groesse enthalten die du im Erklaerungstext als beste Wahl nennst. Die alternativeSize MUSS direkt neben der recommendedSize liegen (eine Groesse kleiner oder groesser — niemals ueberspringen). Pruefe dies vor der Ausgabe.
 
 Antworte NUR mit einem JSON-Objekt ohne Markdown:
 {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}`
@@ -84,9 +97,9 @@ Antworte NUR mit einem JSON-Objekt ohne Markdown:
       result.recommendedSize = extractedSize;
     }
 
-    const nextSize = getNextSize(result.recommendedSize, availableSizes);
-    if (nextSize) {
-      result.alternativeSize = nextSize;
+    if (!isValidAlternative(result.recommendedSize, result.alternativeSize, availableSizes)) {
+      const prev = getPrevSize(result.recommendedSize, availableSizes);
+      result.alternativeSize = prev || getNextSize(result.recommendedSize, availableSizes);
     }
 
     res.json(result);
