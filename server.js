@@ -24,20 +24,50 @@ app.post('/api/size-recommendation', async (req, res) => {
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Given this customer profile and product measurements, recommend the best size. Measurements marked as half:true must be doubled to get circumference. Consider fit preference (Eng=tight, Normal=regular, Locker=loose). If measurements exceed available sizes say so. The customer has provided BH-Groesse (German bra size, e.g. 75B). Derive bust circumference: numeric part = underbust, cup offset A=+10cm B=+12cm C=+14cm D=+16cm E=+18cm F=+20cm. Respond ONLY with valid JSON: {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}
+          content: `Du bist ein Passform-Assistent für Kleidung. Antworte ausschliesslich auf Deutsch.
 
-Customer: ${JSON.stringify(profile)}
-Measurements: ${JSON.stringify(measurements)}`
+Kundenprofil: ${JSON.stringify(profile)}
+Produktmaße: ${JSON.stringify(measurements)}
+
+Regeln:
+- Halbmaße (half:true) müssen verdoppelt werden um den Umfang zu erhalten
+- BH-Größe (z.B. 75C): Unterbrustmaß + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
+- Berücksichtige construction_notes und fit_guidance aus den Produktdaten
+- Gehe immer von normaler Passform aus
+- KRITISCHE REGEL: Das Feld "recommendedSize" MUSS exakt mit der im Erklärungstext genannten empfohlenen Größe übereinstimmen. Wenn du im Text "L" als beste Wahl nennst, muss recommendedSize "L" sein. Prüfe dies vor der Ausgabe.
+
+Antworte NUR mit einem JSON-Objekt ohne Markdown:
+{"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}`
         }]
       })
     });
     const data = await response.json();
     const text = data.content[0].text;
     const clean = text.replace(/```json|```/g, '').trim();
-    res.json(JSON.parse(clean));
+    const result = JSON.parse(clean);
+    
+    // Plausibilitätsprüfung: recommendedSize muss im Erklärungstext vorkommen
+    if (result.explanation && result.recommendedSize) {
+      const exp = result.explanation;
+      const rec = result.recommendedSize;
+      // Wenn die empfohlene Größe nicht im letzten Satz vorkommt, extrahiere sie aus dem Text
+      const lastSentence = exp.split('.').filter(s => s.trim()).pop() || '';
+      if (!lastSentence.includes(rec)) {
+        // Suche nach Größen im letzten Satz
+        const sizes = ['XXXL', 'XXL', 'XL', 'XS', 'S', 'M', 'L'];
+        for (var i = 0; i < sizes.length; i++) {
+          if (lastSentence.includes(sizes[i])) {
+            result.recommendedSize = sizes[i];
+            break;
+          }
+        }
+      }
+    }
+    
+    res.json(result);
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Proxy running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log('Proxy running on port ' + PORT));
