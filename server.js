@@ -24,7 +24,7 @@ app.post('/api/size-recommendation', async (req, res) => {
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `You are a garment fit assistant. Given this customer profile and product measurements, recommend the best size. Measurements marked as half:true must be doubled to get circumference. Consider fit preference (Eng=tight, Normal=regular, Locker=loose). If measurements exceed available sizes say so. Respond ONLY with valid JSON: {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}
+          content: `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Given this customer profile and product measurements, recommend the best size. Measurements marked as half:true must be doubled to get circumference. Consider fit preference (Eng=tight, Normal=regular, Locker=loose). If measurements exceed available sizes say so. Respond ONLY with valid JSON: {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}
 
 Customer: ${JSON.stringify(profile)}
 Measurements: ${JSON.stringify(measurements)}`
