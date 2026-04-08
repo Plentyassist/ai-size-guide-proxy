@@ -61,6 +61,7 @@ Produktmasse: ${JSON.stringify(measurements)}
 
 Regeln:
 - Halbmasse (half:true) muessen verdoppelt werden um den Umfang zu erhalten
+- Taillenumfang-Schaetzung wenn nicht angegeben: Bei X-Form/Sanduhr ca. 65-70% des Brustumfangs. Bei H-Typ ca. 85-90%. Bei A-Typ ca. 75-80%. Nutze diese Schaetzung nur wenn kein Taillenumfang angegeben.
 - BH-Groesse (z.B. 75C): Unterbrustmass + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
 - Figurtypen: A-Typ=schmale Schultern breite Huefte; H-Typ=Rechteck kaum Taillendefinition; O-Typ=rund Bauch dominiert; V-Typ=breite Schultern schmale Huefte; X-Form/Sanduhr=definierte Taille Brust und Huefte aehnlich. Wenn kein Figurtyp angegeben ignoriere dieses Feld. Nutze den Figurtyp fuer konstruktive Hinweise im fitNote.
 - Beruecksichtige construction_notes und fit_guidance aus den Produktdaten
