@@ -64,7 +64,7 @@ Regeln:
 - BH-Groesse (z.B. 75C): Unterbrustmass + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
 - Figurtypen: A-Typ=schmale Schultern breite Huefte; H-Typ=Rechteck kaum Taillendefinition; O-Typ=rund Bauch dominiert; V-Typ=breite Schultern schmale Huefte; X-Form/Sanduhr=definierte Taille Brust und Huefte aehnlich. Wenn kein Figurtyp angegeben ignoriere dieses Feld. Nutze den Figurtyp fuer konstruktive Hinweise im fitNote.
 - Beruecksichtige construction_notes und fit_guidance aus den Produktdaten
-- Dehnlogik: 5% Elastan = ca. 10% Dehnung. Ein Produktmass das bis zu 5% kleiner ist als der Koerperwert sitzt IDEAL. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Groesse bei der das Produktmass mindestens 92% des Koerperwertes erreicht.
+- Dehnlogik: 5% Elastan = ca. 10% Dehnung. Ein Produktmass das bis zu 5% kleiner ist als der Koerperwert sitzt IDEAL. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Groesse bei der das Produktmass mindestens 92% des Koerperwertes erreicht. Bei Strickware mit Elastan ist 92-96% der ideale Bereich — das ist kein Grenzfall sondern der gewuenschte Sitz. Nur wenn das Produktmass unter 92% liegt ist die Groesse zu klein.
 - WICHTIGSTE REGEL: Das Feld recommendedSize MUSS exakt die Groesse enthalten die du im Erklaerungstext als beste Wahl nennst. Die alternativeSize MUSS die naechstgroessere Groesse nach recommendedSize sein. Pruefe dies vor der Ausgabe.
 
 Antworte NUR mit einem JSON-Objekt ohne Markdown:
