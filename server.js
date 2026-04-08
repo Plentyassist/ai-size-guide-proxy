@@ -9,9 +9,42 @@ app.use(express.json());
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 const PORT = process.env.PORT || 3000;
 
+const SIZES = ['XXXL', 'XXL', 'XL', 'XS', 'S', 'M', 'L'];
+
+function extractPrimarySize(text) {
+  if (!text) return null;
+  const sentences = text.split('.').map(s => s.trim()).filter(s => s.length > 0);
+  const keywords = ['empfehle', 'empfohlen', 'passt', 'ideal', 'perfekt', 'wähle', 'nimm'];
+  for (var i = 0; i < sentences.length; i++) {
+    var s = sentences[i];
+    var hasKeyword = keywords.some(function(k) { return s.toLowerCase().includes(k); });
+    if (hasKeyword) {
+      for (var j = 0; j < SIZES.length; j++) {
+        var pattern = new RegExp('\\b' + SIZES[j] + '\\b');
+        if (pattern.test(s)) return SIZES[j];
+      }
+    }
+  }
+  for (var i = 0; i < sentences.length; i++) {
+    for (var j = 0; j < SIZES.length; j++) {
+      var pattern = new RegExp('\\b' + SIZES[j] + '\\b');
+      if (pattern.test(sentences[i])) return SIZES[j];
+    }
+  }
+  return null;
+}
+
+function getNextSize(size, sizes) {
+  var idx = sizes.indexOf(size);
+  if (idx === -1 || idx === sizes.length - 1) return null;
+  return sizes[idx + 1];
+}
+
 app.post('/api/size-recommendation', async (req, res) => {
   try {
     const { profile, measurements } = req.body;
+    const availableSizes = (measurements && measurements.sizes) ? measurements.sizes : SIZES;
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -33,37 +66,32 @@ Regeln:
 - Halbmaße (half:true) müssen verdoppelt werden um den Umfang zu erhalten
 - BH-Größe (z.B. 75C): Unterbrustmaß + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
 - Berücksichtige construction_notes und fit_guidance aus den Produktdaten
-- Gehe immer von normaler Passform aus. WICHTIG zur Dehnlogik: Der Stoff hat 5% Elastan und dehnt sich ca. 10% in der Breite. Das bedeutet: ein Produktmaß das bis zu 5% kleiner ist als der Körperwert sitzt IDEAL — der Stoff liegt glatt an ohne zu ziehen und ohne Falten. Erst wenn das Produktmaß mehr als 8% kleiner ist als der Körperwert wird es zu eng. Empfehle daher die kleinste Größe bei der das Produktmaß mindestens 92% des Körperwertes erreicht. Nicht unnötig eine Größe größer empfehlen wegen "Spielraum"
-- KRITISCHE REGEL: Das Feld "recommendedSize" MUSS exakt mit der im Erklärungstext genannten empfohlenen Größe übereinstimmen. Wenn du im Text "L" als beste Wahl nennst, muss recommendedSize "L" sein. Prüfe dies vor der Ausgabe.
+- Dehnlogik: 5% Elastan = ca. 10% Dehnung. Ein Produktmaß das bis zu 5% kleiner ist als der Körperwert sitzt IDEAL. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Größe bei der das Produktmaß mindestens 92% des Körperwertes erreicht.
+- WICHTIGSTE REGEL: Das Feld "recommendedSize" MUSS exakt die Größe enthalten die du im Erklärungstext als beste Wahl nennst. Die "alternativeSize" MUSS die nächstgrößere Größe nach recommendedSize sein — niemals eine Größe überspringen. Prüfe dies vor der Ausgabe nochmals explizit.
 
 Antworte NUR mit einem JSON-Objekt ohne Markdown:
 {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}`
         }]
       })
     });
+
     const data = await response.json();
     const text = data.content[0].text;
     const clean = text.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
-    
-    // Plausibilitätsprüfung: recommendedSize muss im Erklärungstext vorkommen
-    if (result.explanation && result.recommendedSize) {
-      const exp = result.explanation;
-      const rec = result.recommendedSize;
-      // Wenn die empfohlene Größe nicht im letzten Satz vorkommt, extrahiere sie aus dem Text
-      const lastSentence = exp.split('.').filter(s => s.trim()).pop() || '';
-      if (!lastSentence.includes(rec)) {
-        // Suche nach Größen im letzten Satz
-        const sizes = ['XXXL', 'XXL', 'XL', 'XS', 'S', 'M', 'L'];
-        for (var i = 0; i < sizes.length; i++) {
-          if (lastSentence.includes(sizes[i])) {
-            result.recommendedSize = sizes[i];
-            break;
-          }
-        }
-      }
+
+    // Serverseitige Plausibilitätsprüfung
+    const extractedSize = extractPrimarySize(result.explanation);
+    if (extractedSize && extractedSize !== result.recommendedSize) {
+      result.recommendedSize = extractedSize;
     }
-    
+
+    // Alternative muss nächstgrößere Größe sein
+    const nextSize = getNextSize(result.recommendedSize, availableSizes);
+    if (nextSize) {
+      result.alternativeSize = nextSize;
+    }
+
     res.json(result);
   } catch(e) {
     res.status(500).json({ error: e.message });
