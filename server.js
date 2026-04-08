@@ -24,7 +24,7 @@ app.post('/api/size-recommendation', async (req, res) => {
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `Du bist ein Passform-Assistent für Kleidung. Antworte ausschliesslich auf Deutsch.
+          content: `Du bist ein Passform-Assistent für Kleidung. Antworte ausschliesslich auf Deutsch. Duze die Kundin immer. Die Zielgruppe ist weiblich, 18-35 Jahre, modebewusst. Schreibe kurz, direkt und positiv — maximal 3 Sätze in der Erklärung.
 
 Kundenprofil: ${JSON.stringify(profile)}
 Produktmaße: ${JSON.stringify(measurements)}
