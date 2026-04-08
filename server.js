@@ -67,7 +67,7 @@ app.post('/api/size-recommendation', async (req, res) => {
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Duze die Kundin immer. Die Zielgruppe ist weiblich, 18-35 Jahre, modebewusst. Schreibe kurz, direkt und positiv — maximal 3 Saetze in der Erklaerung.
+          content: `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Duze die Kundin immer. Die Zielgruppe ist weiblich, 18-35 Jahre, modebewusst. Schreibe kurz, direkt und positiv — maximal 3 Saetze in der Erklaerung. Beziehe ALLE eingegebenen Werte in die Beurteilung ein: Koerpergroesse und Gewicht beeinflussen die Gesamtlaenge und Proportionen, BH-Groesse und Figurtyp den Sitz im Oberteil, Taille/Huefte den Sitz im unteren Teil. Erwaehne explizit welche Werte die Entscheidung beeinflusst haben — nicht nur die Oberweite.
 
 Kundenprofil: ${JSON.stringify(profile)}
 Produktmasse: ${JSON.stringify(measurements)}
