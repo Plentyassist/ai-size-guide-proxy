@@ -95,7 +95,8 @@ Antworte NUR mit einem JSON-Objekt ohne Markdown:
 
     res.json(result);
   } catch(e) {
-    res.status(500).json({ error: e.message });
+    const isRateLimit = e.message res.status(500).json({ error: e.message });res.status(500).json({ error: e.message }); e.message.includes("529") || e.message.includes("rate");
+    res.status(500).json({ error: e.message, userMessage: isRateLimit ? "Gerade sind viele Anfragen unterwegs — bitte versuche es in 30 Sekunden nochmal." : "Etwas ist schiefgelaufen. Bitte versuche es erneut." });
   }
 });
 
