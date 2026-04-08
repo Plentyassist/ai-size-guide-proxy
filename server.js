@@ -33,7 +33,7 @@ Regeln:
 - Halbmaße (half:true) müssen verdoppelt werden um den Umfang zu erhalten
 - BH-Größe (z.B. 75C): Unterbrustmaß + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
 - Berücksichtige construction_notes und fit_guidance aus den Produktdaten
-- Gehe immer von normaler Passform aus
+- Gehe immer von normaler Passform aus. WICHTIG zur Dehnlogik: Der Stoff hat 5% Elastan und dehnt sich ca. 10% in der Breite. Das bedeutet: ein Produktmaß das bis zu 5% kleiner ist als der Körperwert sitzt IDEAL — der Stoff liegt glatt an ohne zu ziehen und ohne Falten. Erst wenn das Produktmaß mehr als 8% kleiner ist als der Körperwert wird es zu eng. Empfehle daher die kleinste Größe bei der das Produktmaß mindestens 92% des Körperwertes erreicht. Nicht unnötig eine Größe größer empfehlen wegen "Spielraum"
 - KRITISCHE REGEL: Das Feld "recommendedSize" MUSS exakt mit der im Erklärungstext genannten empfohlenen Größe übereinstimmen. Wenn du im Text "L" als beste Wahl nennst, muss recommendedSize "L" sein. Prüfe dies vor der Ausgabe.
 
 Antworte NUR mit einem JSON-Objekt ohne Markdown:
