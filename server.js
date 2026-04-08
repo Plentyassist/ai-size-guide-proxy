@@ -24,7 +24,7 @@ app.post('/api/size-recommendation', async (req, res) => {
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Given this customer profile and product measurements, recommend the best size. Measurements marked as half:true must be doubled to get circumference. Consider fit preference (Eng=tight, Normal=regular, Locker=loose). If measurements exceed available sizes say so. Respond ONLY with valid JSON: {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}
+          content: `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Given this customer profile and product measurements, recommend the best size. Measurements marked as half:true must be doubled to get circumference. Consider fit preference (Eng=tight, Normal=regular, Locker=loose). If measurements exceed available sizes say so. The customer has provided BH-Groesse (German bra size, e.g. 75B). Derive bust circumference: numeric part = underbust, cup offset A=+10cm B=+12cm C=+14cm D=+16cm E=+18cm F=+20cm. Respond ONLY with valid JSON: {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}
 
 Customer: ${JSON.stringify(profile)}
 Measurements: ${JSON.stringify(measurements)}`
