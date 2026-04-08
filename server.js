@@ -7,6 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
+const PORT = process.env.PORT || 3000;
 
 app.post('/api/size-recommendation', async (req, res) => {
   try {
@@ -23,20 +24,20 @@ app.post('/api/size-recommendation', async (req, res) => {
         max_tokens: 1000,
         messages: [{
           role: 'user',
-          content: `You are a garment fit assistant. Given this customer profile and product measurements, recommend the best size. Measurements marked as half:true must be doubled to get circumference. Consider the customer fit preference (Eng=tight, Normal=regular, Locker=loose). If measurements exceed available sizes, say so honestly. Respond ONLY with a JSON object: {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}
+          content: `You are a garment fit assistant. Given this customer profile and product measurements, recommend the best size. Measurements marked as half:true must be doubled to get circumference. Consider fit preference (Eng=tight, Normal=regular, Locker=loose). If measurements exceed available sizes say so. Respond ONLY with valid JSON: {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}
 
-Customer profile: ${JSON.stringify(profile)}
-Product measurements: ${JSON.stringify(measurements)}`
+Customer: ${JSON.stringify(profile)}
+Measurements: ${JSON.stringify(measurements)}`
         }]
       })
     });
     const data = await response.json();
     const text = data.content[0].text;
-    const json = JSON.parse(text.replace(/```json|```/g, '').trim());
-    res.json(json);
+    const clean = text.replace(/```json|```/g, '').trim();
+    res.json(JSON.parse(clean));
   } catch(e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-app.listen(process.env.PORT || 3001, () => console.log('Proxy running'));
+app.listen(PORT, '0.0.0.0', () => console.log(`Proxy running on port ${PORT}`));
