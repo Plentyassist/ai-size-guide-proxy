@@ -151,6 +151,23 @@ Antworte NUR mit einem JSON-Objekt ohne Markdown:
 });
 
 app.use(express.static(__dirname));
+
+app.get('/api/dashboard-data', async (req, res) => {
+  const pwd = req.headers['x-dashboard-password'];
+  if (pwd !== 'tates2026') { return res.status(401).json({ error: 'Unauthorized' }); }
+  try {
+    const response = await fetch(SUPABASE_URL + '/rest/v1/recommendations?select=*&order=created_at.desc&limit=500', {
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_SERVICE_KEY
+      }
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 app.listen(PORT, '0.0.0.0', () => console.log('Proxy running on port ' + PORT));
 
 app.get('/api/dashboard-data', async (req, res) => {
