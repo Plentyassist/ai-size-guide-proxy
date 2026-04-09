@@ -7,6 +7,8 @@ app.use(cors());
 app.use(express.json());
 
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const PORT = process.env.PORT || 3000;
 const SIZES = ['XXXL', 'XXL', 'XL', 'XS', 'S', 'M', 'L'];
 
@@ -50,6 +52,24 @@ function getPrevSize(size, sizes) {
   return sizes[idx - 1];
 }
 
+async function saveToSupabase(data) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return;
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/recommendations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(data)
+    });
+  } catch(e) {
+    console.error('Supabase write error:', e.message);
+  }
+}
+
 app.post('/api/size-recommendation', async (req, res) => {
   try {
     const { profile, measurements } = req.body;
@@ -78,10 +98,10 @@ Regeln:
 - Figurtypen: A-Typ=schmale Schultern breite Huefte; H-Typ=Rechteck kaum Taillendefinition; O-Typ=rund Bauch dominiert; V-Typ=breite Schultern schmale Huefte; X-Form/Sanduhr=definierte Taille Brust und Huefte aehnlich. Wenn kein Figurtyp angegeben ignoriere dieses Feld. Nutze den Figurtyp fuer konstruktive Hinweise im fitNote.
 - Beruecksichtige construction_notes und fit_guidance aus den Produktdaten
 - Dehnlogik: Bei Elastan-Anteil dehnt sich der Stoff. Ein Produktmass das bis zu 5% kleiner ist als der Koerperwert sitzt IDEAL koerpernah. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Groesse bei der das Produktmass mindestens 92% des Koerperwertes erreicht — das ist kein Grenzfall sondern der ideale Sitz.
-- Kleidlaengen-Logik: Schritt 1: Bestimme Kleidtyp anhand Gesamtlaenge A in Groesse M: unter 85cm=kurzes Kleid (Mini gewollt), 85-100cm=knianahe Laenge, ueber 100cm=langes Kleid (Midi gewollt). Schritt 2: Berechne Kleidende ab Boden = Koerpergroesse der Kundin minus Kleidlaenge A der empfohlenen Groesse. Kniehoehe ab Boden: wenn Innenbeinlaenge angegeben = Innenbeinlaenge mal 0.55; sonst = Koerpergroesse mal 0.27 (Schaetzwert). Vergleiche Kleidende mit Kniehoehe: mehr als 15cm ueber Knie=Mini, 5-15cm ueber Knie=kurz, 5cm ueber bis 5cm unter Knie=knianahe, mehr als 5cm unter Knie=midi/lang. Schritt 3: Erwaehne die Kleidlaenge nur im fitNote wenn sie auffaellig vom gewollten Typ abweicht — z.B. kurzes Kleid endet bei sehr grosser Kundin extrem hoch (unter 40cm ab Boden), oder langes Kleid wirkt bei sehr kleiner Kundin fast bodenlang.
-- Gewicht-Logik: Nutze Gewicht zusammen mit Koerpergroesse um Proportionen einzuschaetzen. Priorisiere immer gemessene Umfaenge gegenueber Gewichtsschaetzungen.
-- ALTERNATIVE GROESSE: Bei Elastan-Kleidern tendiere zur naechst-kleineren Groesse als Alternative (koerpernaher Sitz ist bei Elastan angenehmer). Nur wenn die naechst-kleinere Groesse unter 90% des Koerperwertes liegt, waehle die naechst-groessere als Alternative.
-- WICHTIGSTE REGEL: Das Feld recommendedSize MUSS exakt die Groesse enthalten die du im Erklaerungstext als beste Wahl nennst. Die alternativeSize MUSS direkt neben der recommendedSize liegen (eine Groesse kleiner oder groesser — niemals ueberspringen). Pruefe dies vor der Ausgabe.
+- Kleidlaengen-Logik: Schritt 1: Bestimme Kleidtyp anhand Gesamtlaenge A in Groesse M: unter 85cm=kurzes Kleid (Mini gewollt), 85-100cm=knianahe Laenge, ueber 100cm=langes Kleid (Midi gewollt). Schritt 2: Berechne Kleidende ab Boden = Koerpergroesse der Kundin minus Kleidlaenge A der empfohlenen Groesse. Kniehoehe ab Boden: wenn Innenbeinlaenge angegeben = Innenbeinlaenge mal 0.55; sonst = Koerpergroesse mal 0.27 (Schaetzwert). Vergleiche Kleidende mit Kniehoehe: mehr als 15cm ueber Knie=Mini, 5-15cm ueber Knie=kurz, 5cm ueber bis 5cm unter Knie=knianahe, mehr als 5cm unter Knie=midi/lang. Schritt 3: Erwaehne die Kleidlaenge nur im fitNote wenn sie auffaellig vom gewollten Typ abweicht.
+- Gewicht-Logik: Nutze Gewicht zusammen mit Koerpergroesse um Proportionen einzuschaetzen. Priorisiere immer gemessene Umfaenge.
+- ALTERNATIVE GROESSE: Bei Elastan-Kleidern tendiere zur naechst-kleineren Groesse als Alternative. Nur wenn die naechst-kleinere Groesse unter 90% des Koerperwertes liegt, waehle die naechst-groessere.
+- WICHTIGSTE REGEL: Das Feld recommendedSize MUSS exakt die Groesse enthalten die du im Erklaerungstext als beste Wahl nennst. Die alternativeSize MUSS direkt neben der recommendedSize liegen. Pruefe dies vor der Ausgabe.
 
 Antworte NUR mit einem JSON-Objekt ohne Markdown:
 {"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}`
@@ -103,6 +123,23 @@ Antworte NUR mit einem JSON-Objekt ohne Markdown:
       const prev = getPrevSize(result.recommendedSize, availableSizes);
       result.alternativeSize = prev || getNextSize(result.recommendedSize, availableSizes);
     }
+
+    // Supabase logging
+    await saveToSupabase({
+      product_id: measurements ? measurements.product_id : null,
+      product_title: measurements ? measurements.name : null,
+      recommended_size: result.recommendedSize,
+      alternative_size: result.alternativeSize,
+      height: profile ? parseFloat(profile.height) || null : null,
+      weight: profile ? parseFloat(profile.weight) || null : null,
+      cup_size: profile ? profile.cup : null,
+      figure_type: profile ? profile.figure : null,
+      waist: profile ? parseFloat(profile.waist) || null : null,
+      hip: profile ? parseFloat(profile.hip) || null : null,
+      inseam: profile ? parseFloat(profile.inseam) || null : null,
+      explanation: result.explanation,
+      fit_note: result.fitNote
+    });
 
     res.json(result);
   } catch(e) {
