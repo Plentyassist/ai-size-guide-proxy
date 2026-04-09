@@ -15,15 +15,21 @@
   .section h2{font-size:16px;margin:0 0 16px}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{text-align:left;padding:8px;color:#666;border-bottom:1px solid #e1e3e5}
-  td{padding:10px 8px;border-bottom:1px solid #f1f1f1}
+  td{padding:8px;border-bottom:1px solid #f1f1f1}
   .bar-wrap{display:flex;align-items:center;gap:8px}
-  .bar-bg{background:#e1e3e5;border-radius:4px;height:8px;width:100px}
+  .bar-bg{background:#e1e3e5;border-radius:4px;height:8px;width:120px;flex-shrink:0}
   .bar-fill{background:#008060;border-radius:4px;height:8px}
-  .badge{font-weight:600;background:#f6f6f7;padding:2px 8px;border-radius:4px}
+  .bar-fill-blue{background:#0070c4;border-radius:4px;height:8px}
+  .badge{font-weight:600;background:#f6f6f7;padding:2px 8px;border-radius:4px;font-size:12px}
   input[type=password]{padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;width:200px}
   button{padding:8px 16px;background:#008060;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px}
   #login{display:flex;align-items:center;gap:12px;margin-bottom:24px}
   #err{font-size:13px;color:#d82c0d}
+  .field-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .field-card{background:#f6f6f7;border-radius:6px;padding:12px}
+  .field-card .fname{font-size:12px;color:#666;margin-bottom:6px}
+  .field-card .fpct{font-size:20px;font-weight:600}
+  .field-card .fbar{margin-top:6px}
 </style>
 </head>
 <body>
@@ -40,13 +46,22 @@
     <div class="card"><div class="label">Heute</div><div class="value" id="today">—</div></div>
     <div class="card"><div class="label">Produkte</div><div class="value" id="prods">—</div></div>
   </div>
+
+  <div class="section">
+    <h2>Feldbefüllung — wie viele Kundinnen haben welche Angaben gemacht</h2>
+    <div class="field-grid" id="field-stats"></div>
+  </div>
+
   <div id="stats"></div>
+
   <div class="section">
     <h2>Letzte 50 Empfehlungen</h2>
+    <div style="overflow-x:auto">
     <table>
-      <thead><tr><th>Zeitpunkt</th><th>Produkt</th><th>Größe</th><th>Figurtyp</th><th>BH</th><th>cm/kg</th></tr></thead>
+      <thead><tr><th>Zeitpunkt</th><th>Produkt</th><th>Größe</th><th>Figurtyp</th><th>BH</th><th>cm</th><th>kg</th><th>Taille</th><th>Hüfte</th><th>Innenbein</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
+    </div>
   </div>
 </div>
 <script>
@@ -64,9 +79,11 @@ document.getElementById('btn').addEventListener('click', function() {
     document.getElementById('err').textContent = '';
     document.getElementById('content').style.display = 'block';
     document.getElementById('ts').textContent = 'Geladen: ' + new Date().toLocaleString('de-DE');
+
     var today = data.filter(function(r) {
       return new Date(r.created_at).toDateString() === new Date().toDateString();
     }).length;
+
     var stats = {};
     data.forEach(function(r) {
       var t = r.product_title || r.product_id || 'Unbekannt';
@@ -74,24 +91,45 @@ document.getElementById('btn').addEventListener('click', function() {
       var s = r.recommended_size || '?';
       stats[t][s] = (stats[t][s] || 0) + 1;
     });
+
     document.getElementById('total').textContent = data.length;
     document.getElementById('today').textContent = today;
     document.getElementById('prods').textContent = Object.keys(stats).length;
+
+    var fields = [
+      { key: 'height', label: 'Körpergröße' },
+      { key: 'weight', label: 'Gewicht' },
+      { key: 'cup_size', label: 'BH-Größe' },
+      { key: 'figure_type', label: 'Figurtyp' },
+      { key: 'waist', label: 'Taillenumfang' },
+      { key: 'hip', label: 'Hüftumfang' },
+      { key: 'inseam', label: 'Innenbeinlänge' }
+    ];
+    var n = data.length || 1;
+    var fhtml = '';
+    fields.forEach(function(f) {
+      var count = data.filter(function(r) { return r[f.key] !== null && r[f.key] !== undefined && r[f.key] !== ''; }).length;
+      var pct = Math.round(count / n * 100);
+      fhtml += '<div class="field-card"><div class="fname">' + f.label + '</div><div class="fpct">' + pct + '%</div><div class="fbar"><div class="bar-bg"><div class="bar-fill-blue" style="width:' + (pct * 1.2) + 'px;max-width:120px"></div></div></div><div style="font-size:11px;color:#888;margin-top:4px">' + count + ' von ' + n + '</div></div>';
+    });
+    document.getElementById('field-stats').innerHTML = fhtml;
+
     var html = '';
     Object.keys(stats).forEach(function(product) {
       var sizes = stats[product];
       var total = Object.values(sizes).reduce(function(a,b){return a+b;}, 0);
-      html += '<div class="section"><h2>' + product + ' <span style="font-weight:400;font-size:13px;color:#666;">(' + total + ')</span></h2><table><thead><tr><th>Größe</th><th>Anzahl</th><th>Anteil</th></tr></thead><tbody>';
+      html += '<div class="section"><h2>' + product + ' <span style="font-weight:400;font-size:13px;color:#666;">(' + total + ' Empfehlungen)</span></h2><table><thead><tr><th>Größe</th><th>Anzahl</th><th>Anteil</th></tr></thead><tbody>';
       Object.entries(sizes).sort(function(a,b){return b[1]-a[1];}).forEach(function(e) {
         var pct = Math.round(e[1]/total*100);
-        html += '<tr><td><span class="badge">' + e[0] + '</span></td><td>' + e[1] + '</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:' + pct + 'px"></div></div>' + pct + '%</div></td></tr>';
+        html += '<tr><td><span class="badge">' + e[0] + '</span></td><td>' + e[1] + '</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:' + (pct*1.2) + 'px;max-width:120px"></div></div>' + pct + '%</div></td></tr>';
       });
       html += '</tbody></table></div>';
     });
     document.getElementById('stats').innerHTML = html;
+
     var rows = '';
     data.slice(0,50).forEach(function(r) {
-      rows += '<tr><td>' + new Date(r.created_at).toLocaleString('de-DE') + '</td><td>' + (r.product_title||'-') + '</td><td><span class="badge">' + (r.recommended_size||'-') + '</span></td><td>' + (r.figure_type||'-') + '</td><td>' + (r.cup_size||'-') + '</td><td>' + (r.height||'-') + '/' + (r.weight||'-') + '</td></tr>';
+      rows += '<tr><td style="white-space:nowrap">' + new Date(r.created_at).toLocaleString('de-DE') + '</td><td>' + (r.product_title||'-') + '</td><td><span class="badge">' + (r.recommended_size||'-') + '</span></td><td>' + (r.figure_type||'-') + '</td><td>' + (r.cup_size||'-') + '</td><td>' + (r.height||'-') + '</td><td>' + (r.weight||'-') + '</td><td>' + (r.waist||'-') + '</td><td>' + (r.hip||'-') + '</td><td>' + (r.inseam||'-') + '</td></tr>';
     });
     document.getElementById('rows').innerHTML = rows;
   }).catch(function(e) {
