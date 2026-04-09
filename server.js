@@ -150,4 +150,5 @@ Antworte NUR mit einem JSON-Objekt ohne Markdown:
   }
 });
 
+app.use(express.static(__dirname));
 app.listen(PORT, '0.0.0.0', () => console.log('Proxy running on port ' + PORT));
