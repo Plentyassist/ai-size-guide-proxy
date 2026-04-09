@@ -5,31 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Size Guide Dashboard</title>
 <style>
-  body{font-family:-apple-system,sans-serif;margin:0;padding:24px;background:#f6f6f7;color:#1a1a1a}
-  h1{font-size:22px;margin-bottom:24px}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
-  .card{background:white;border-radius:8px;padding:20px;border:1px solid #e1e3e5}
-  .card .label{font-size:13px;color:#666;margin-bottom:8px}
-  .card .value{font-size:32px;font-weight:600}
-  .section{background:white;border-radius:8px;padding:20px;border:1px solid #e1e3e5;margin-bottom:16px}
-  .section h2{font-size:16px;margin:0 0 16px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th{text-align:left;padding:8px;color:#666;border-bottom:1px solid #e1e3e5}
-  td{padding:8px;border-bottom:1px solid #f1f1f1}
-  .bar-wrap{display:flex;align-items:center;gap:8px}
-  .bar-bg{background:#e1e3e5;border-radius:4px;height:8px;width:120px;flex-shrink:0}
-  .bar-fill{background:#008060;border-radius:4px;height:8px}
-  .bar-fill-blue{background:#0070c4;border-radius:4px;height:8px}
-  .badge{font-weight:600;background:#f6f6f7;padding:2px 8px;border-radius:4px;font-size:12px}
-  input[type=password]{padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;width:200px}
-  button{padding:8px 16px;background:#008060;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px}
-  #login{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f6f6f7;color:#1a1a1a;padding:24px;font-size:14px}
+  h1{font-size:20px;font-weight:500;margin-bottom:20px}
+  #login{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  input[type=password],input[type=text]{padding:7px 11px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+  input[type=password]{width:180px}
+  button{padding:7px 14px;background:#008060;color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px}
+  button:hover{background:#006e52}
   #err{font-size:13px;color:#d82c0d}
-  .field-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .field-card{background:#f6f6f7;border-radius:6px;padding:12px}
-  .field-card .fname{font-size:12px;color:#666;margin-bottom:6px}
-  .field-card .fpct{font-size:20px;font-weight:600}
-  .field-card .fbar{margin-top:6px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+  .card{background:white;border-radius:8px;padding:16px;border:1px solid #e1e3e5}
+  .card .label{font-size:12px;color:#666;margin-bottom:6px}
+  .card .value{font-size:28px;font-weight:500}
+  .card .delta{font-size:12px;margin-top:4px}
+  .delta.up{color:#008060}.delta.down{color:#d82c0d}.delta.neutral{color:#666}
+  .section{background:white;border-radius:8px;padding:18px;border:1px solid #e1e3e5;margin-bottom:16px}
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+  .section-header h2{font-size:15px;font-weight:500}
+  .filter-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .filter-btn{padding:4px 10px;border:1px solid #ddd;border-radius:20px;background:white;cursor:pointer;font-size:12px;color:#444}
+  .filter-btn.active{background:#1a1a1a;color:white;border-color:#1a1a1a}
+  .custom-range{display:none;align-items:center;gap:6px;font-size:12px;color:#666}
+  .custom-range input{width:90px;padding:4px 8px;font-size:12px}
+  .custom-range.show{display:flex}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:7px 8px;color:#666;border-bottom:1px solid #e1e3e5;font-weight:400;font-size:12px}
+  td{padding:8px;border-bottom:1px solid #f1f1f1}
+  .badge{font-weight:500;background:#f1f1f1;padding:2px 8px;border-radius:4px;font-size:12px}
+  .bar-row{display:flex;align-items:center;gap:8px}
+  .bar-bg{background:#e8e8e8;border-radius:3px;height:7px;width:100px;flex-shrink:0}
+  .bar-fill{background:#008060;border-radius:3px;height:7px}
+  .bar-fill-b{background:#0070c4;border-radius:3px;height:7px}
+  .field-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .field-card{background:#f8f8f8;border-radius:6px;padding:12px}
+  .field-card .fname{font-size:11px;color:#888;margin-bottom:5px}
+  .field-card .fpct{font-size:22px;font-weight:500}
+  .field-card .fdelta{font-size:11px;margin-top:3px}
+  .comp-label{font-size:11px;color:#999;margin-top:8px}
+  .overflow{overflow-x:auto}
 </style>
 </head>
 <body>
@@ -40,23 +54,60 @@
   <span id="err"></span>
 </div>
 <div id="content" style="display:none">
-  <div style="font-size:13px;color:#666;margin-bottom:16px" id="ts"></div>
+  <div style="font-size:12px;color:#888;margin-bottom:16px" id="ts"></div>
   <div class="cards">
-    <div class="card"><div class="label">Gesamt</div><div class="value" id="total">—</div></div>
-    <div class="card"><div class="label">Heute</div><div class="value" id="today">—</div></div>
-    <div class="card"><div class="label">Produkte</div><div class="value" id="prods">—</div></div>
+    <div class="card"><div class="label">Gesamt</div><div class="value" id="c-total">—</div></div>
+    <div class="card"><div class="label">Heute</div><div class="value" id="c-today">—</div><div class="delta" id="d-today"></div></div>
+    <div class="card"><div class="label">Produkte</div><div class="value" id="c-prods">—</div></div>
   </div>
 
   <div class="section">
-    <h2>Feldbefüllung — wie viele Kundinnen haben welche Angaben gemacht</h2>
+    <div class="section-header">
+      <h2>Feldbefüllung</h2>
+      <div>
+        <div class="filter-bar" id="field-filters">
+          <button class="filter-btn active" data-period="today" onclick="setFilter('field',this)">Heute</button>
+          <button class="filter-btn" data-period="yesterday" onclick="setFilter('field',this)">Gestern</button>
+          <button class="filter-btn" data-period="week" onclick="setFilter('field',this)">Diese Woche</button>
+          <button class="filter-btn" data-period="lastweek" onclick="setFilter('field',this)">Letzte Woche</button>
+          <button class="filter-btn" data-period="custom" onclick="setFilter('field',this)">Individuell</button>
+        </div>
+        <div class="custom-range" id="field-custom">
+          Von <input type="text" id="field-from" placeholder="TT.MM.JJ">
+          Bis <input type="text" id="field-to" placeholder="TT.MM.JJ">
+          <button onclick="applyCustom('field')">OK</button>
+        </div>
+        <div class="comp-label" id="field-comp-label"></div>
+      </div>
+    </div>
     <div class="field-grid" id="field-stats"></div>
   </div>
 
-  <div id="stats"></div>
+  <div class="section">
+    <div class="section-header">
+      <h2>Größenverteilung nach Produkt</h2>
+      <div>
+        <div class="filter-bar" id="prod-filters">
+          <button class="filter-btn active" data-period="today" onclick="setFilter('prod',this)">Heute</button>
+          <button class="filter-btn" data-period="yesterday" onclick="setFilter('prod',this)">Gestern</button>
+          <button class="filter-btn" data-period="week" onclick="setFilter('prod',this)">Diese Woche</button>
+          <button class="filter-btn" data-period="lastweek" onclick="setFilter('prod',this)">Letzte Woche</button>
+          <button class="filter-btn" data-period="custom" onclick="setFilter('prod',this)">Individuell</button>
+        </div>
+        <div class="custom-range" id="prod-custom">
+          Von <input type="text" id="prod-from" placeholder="TT.MM.JJ">
+          Bis <input type="text" id="prod-to" placeholder="TT.MM.JJ">
+          <button onclick="applyCustom('prod')">OK</button>
+        </div>
+        <div class="comp-label" id="prod-comp-label"></div>
+      </div>
+    </div>
+    <div id="prod-stats"></div>
+  </div>
 
   <div class="section">
-    <h2>Letzte 50 Empfehlungen</h2>
-    <div style="overflow-x:auto">
+    <h2 style="margin-bottom:14px">Letzte 50 Empfehlungen</h2>
+    <div class="overflow">
     <table>
       <thead><tr><th>Zeitpunkt</th><th>Produkt</th><th>Größe</th><th>Figurtyp</th><th>BH</th><th>cm</th><th>kg</th><th>Taille</th><th>Hüfte</th><th>Innenbein</th></tr></thead>
       <tbody id="rows"></tbody>
@@ -65,76 +116,174 @@
   </div>
 </div>
 <script>
+var ALL_DATA = [];
+var fieldPeriod = {type:'today'};
+var prodPeriod = {type:'today'};
+
+function parseDE(s) {
+  if (!s) return null;
+  var p = s.split('.');
+  if (p.length !== 3) return null;
+  var y = parseInt(p[2]); if (y < 100) y += 2000;
+  return new Date(y, parseInt(p[1])-1, parseInt(p[0]));
+}
+
+function startOfDay(d) { var r=new Date(d); r.setHours(0,0,0,0); return r; }
+function endOfDay(d) { var r=new Date(d); r.setHours(23,59,59,999); return r; }
+
+function getPeriodRange(type, customFrom, customTo) {
+  var now = new Date();
+  var tod = startOfDay(now);
+  var wd = tod.getDay() || 7;
+  if (type==='today') return {from: tod, to: endOfDay(now), label:'Heute'};
+  if (type==='yesterday') { var y=new Date(tod); y.setDate(y.getDate()-1); return {from:y, to:endOfDay(new Date(y)), label:'Gestern'}; }
+  if (type==='week') { var ws=new Date(tod); ws.setDate(tod.getDate()-(wd-1)); return {from:ws, to:endOfDay(now), label:'Diese Woche'}; }
+  if (type==='lastweek') { var lws=new Date(tod); lws.setDate(tod.getDate()-(wd-1)-7); var lwe=new Date(lws); lwe.setDate(lws.getDate()+6); return {from:lws, to:endOfDay(lwe), label:'Letzte Woche'}; }
+  if (type==='custom' && customFrom && customTo) return {from:startOfDay(customFrom), to:endOfDay(customTo), label: fmtDate(customFrom)+' – '+fmtDate(customTo)};
+  return {from: tod, to: endOfDay(now), label:'Heute'};
+}
+
+function getCompRange(p) {
+  var diff = p.to - p.from;
+  var compTo = new Date(p.from.getTime() - 1);
+  var compFrom = new Date(compTo.getTime() - diff);
+  return {from: compFrom, to: compTo};
+}
+
+function getCompLabel(type) {
+  if (type==='today') return 'vs. Gestern';
+  if (type==='yesterday') return 'vs. Vorgestern';
+  if (type==='week') return 'vs. Letzte Woche';
+  if (type==='lastweek') return 'vs. Vorletzte Woche';
+  return 'vs. gleiche Zeitspanne davor';
+}
+
+function filterData(data, from, to) {
+  return data.filter(function(r) { var d=new Date(r.created_at); return d>=from && d<=to; });
+}
+
+function fmtDate(d) { return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }
+
+function delta(curr, prev) {
+  if (prev===0 && curr===0) return {text:'—', cls:'neutral'};
+  if (prev===0) return {text:'+'+curr, cls:'up'};
+  var pct = Math.round((curr-prev)/prev*100);
+  if (pct>0) return {text:'+'+pct+'%', cls:'up'};
+  if (pct<0) return {text:pct+'%', cls:'down'};
+  return {text:'±0%', cls:'neutral'};
+}
+
+function renderFieldStats() {
+  var p = getPeriodRange(fieldPeriod.type, fieldPeriod.from, fieldPeriod.to);
+  var comp = getCompRange(p);
+  var curr = filterData(ALL_DATA, p.from, p.to);
+  var prev = filterData(ALL_DATA, comp.from, comp.to);
+  document.getElementById('field-comp-label').textContent = curr.length + ' Empfehlungen ' + p.label + ' | ' + getCompLabel(fieldPeriod.type) + ': ' + prev.length;
+  var fields = [
+    {key:'height',label:'Körpergröße'},{key:'weight',label:'Gewicht'},
+    {key:'cup_size',label:'BH-Größe'},{key:'figure_type',label:'Figurtyp'},
+    {key:'waist',label:'Taillenumfang'},{key:'hip',label:'Hüftumfang'},
+    {key:'inseam',label:'Innenbeinlänge'}
+  ];
+  var n = curr.length || 1;
+  var np = prev.length || 1;
+  var html = '';
+  fields.forEach(function(f) {
+    var c = curr.filter(function(r){return r[f.key]!==null&&r[f.key]!==undefined&&r[f.key]!==''}).length;
+    var pv = prev.filter(function(r){return r[f.key]!==null&&r[f.key]!==undefined&&r[f.key]!==''}).length;
+    var pct = Math.round(c/n*100);
+    var ppct = Math.round(pv/np*100);
+    var d = delta(pct, ppct);
+    html += '<div class="field-card"><div class="fname">'+f.label+'</div><div class="fpct">'+pct+'%</div>';
+    html += '<div class="bar-bg" style="margin-top:5px"><div class="bar-fill-b" style="width:'+Math.round(pct*1.2)+'px;max-width:100px"></div></div>';
+    html += '<div class="fdelta '+d.cls+'">'+d.text+' vs. Vergleich ('+ppct+'%)</div>';
+    html += '<div style="font-size:11px;color:#aaa">'+c+' von '+n+'</div></div>';
+  });
+  document.getElementById('field-stats').innerHTML = html;
+}
+
+function renderProdStats() {
+  var p = getPeriodRange(prodPeriod.type, prodPeriod.from, prodPeriod.to);
+  var comp = getCompRange(p);
+  var curr = filterData(ALL_DATA, p.from, p.to);
+  var prev = filterData(ALL_DATA, comp.from, comp.to);
+  document.getElementById('prod-comp-label').textContent = curr.length + ' Empfehlungen ' + p.label + ' | ' + getCompLabel(prodPeriod.type) + ': ' + prev.length;
+  var stats = {}, prevStats = {};
+  curr.forEach(function(r){var t=r.product_title||r.product_id||'Unbekannt';if(!stats[t])stats[t]={};var s=r.recommended_size||'?';stats[t][s]=(stats[t][s]||0)+1;});
+  prev.forEach(function(r){var t=r.product_title||r.product_id||'Unbekannt';if(!prevStats[t])prevStats[t]={};var s=r.recommended_size||'?';prevStats[t][s]=(prevStats[t][s]||0)+1;});
+  var html = '';
+  Object.keys(stats).forEach(function(product) {
+    var sizes = stats[product];
+    var total = Object.values(sizes).reduce(function(a,b){return a+b;},0);
+    var ptotal = prevStats[product] ? Object.values(prevStats[product]).reduce(function(a,b){return a+b;},0) : 0;
+    var d = delta(total, ptotal);
+    html += '<div style="margin-bottom:16px"><div style="font-size:13px;font-weight:500;margin-bottom:8px">'+product+' <span style="font-weight:400;color:#888;font-size:12px">('+total+' <span class="'+d.cls+'">'+d.text+'</span> vs. Vergleich)</span></div>';
+    html += '<table><thead><tr><th>Größe</th><th>Anzahl</th><th>Anteil</th><th>vs. Vergleich</th></tr></thead><tbody>';
+    Object.entries(sizes).sort(function(a,b){return b[1]-a[1];}).forEach(function(e) {
+      var pct = Math.round(e[1]/total*100);
+      var prev_count = (prevStats[product]&&prevStats[product][e[0]])||0;
+      var pd = delta(e[1], prev_count);
+      html += '<tr><td><span class="badge">'+e[0]+'</span></td><td>'+e[1]+'</td><td><div class="bar-row"><div class="bar-bg"><div class="bar-fill" style="width:'+Math.round(pct*1.2)+'px;max-width:100px"></div></div>'+pct+'%</div></td><td class="'+pd.cls+'">'+pd.text+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+  if (!html) html = '<div style="color:#888;font-size:13px">Keine Daten für diesen Zeitraum</div>';
+  document.getElementById('prod-stats').innerHTML = html;
+}
+
+function setFilter(scope, btn) {
+  var period = btn.getAttribute('data-period');
+  document.querySelectorAll('#'+scope+'-filters .filter-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  var customEl = document.getElementById(scope+'-custom');
+  if (period==='custom') { customEl.classList.add('show'); return; }
+  customEl.classList.remove('show');
+  if (scope==='field') { fieldPeriod = {type:period}; renderFieldStats(); }
+  else { prodPeriod = {type:period}; renderProdStats(); }
+}
+
+function applyCustom(scope) {
+  var from = parseDE(document.getElementById(scope+'-from').value);
+  var to = parseDE(document.getElementById(scope+'-to').value);
+  if (!from || !to) { alert('Bitte Datum im Format TT.MM.JJ eingeben'); return; }
+  if (scope==='field') { fieldPeriod = {type:'custom', from:from, to:to}; renderFieldStats(); }
+  else { prodPeriod = {type:'custom', from:from, to:to}; renderProdStats(); }
+}
+
 document.getElementById('btn').addEventListener('click', function() {
   var pwd = document.getElementById('pwd').value;
   document.getElementById('err').textContent = 'Lade...';
-  fetch('/api/dashboard-data', {
-    headers: { 'x-dashboard-password': pwd }
-  }).then(function(res) {
-    if (res.status === 401) { document.getElementById('err').textContent = 'Falsches Passwort'; return null; }
-    if (!res.ok) { document.getElementById('err').textContent = 'Fehler beim Laden'; return null; }
-    return res.json();
-  }).then(function(data) {
-    if (!data) return;
-    document.getElementById('err').textContent = '';
-    document.getElementById('content').style.display = 'block';
-    document.getElementById('ts').textContent = 'Geladen: ' + new Date().toLocaleString('de-DE');
-
-    var today = data.filter(function(r) {
-      return new Date(r.created_at).toDateString() === new Date().toDateString();
-    }).length;
-
-    var stats = {};
-    data.forEach(function(r) {
-      var t = r.product_title || r.product_id || 'Unbekannt';
-      if (!stats[t]) stats[t] = {};
-      var s = r.recommended_size || '?';
-      stats[t][s] = (stats[t][s] || 0) + 1;
-    });
-
-    document.getElementById('total').textContent = data.length;
-    document.getElementById('today').textContent = today;
-    document.getElementById('prods').textContent = Object.keys(stats).length;
-
-    var fields = [
-      { key: 'height', label: 'Körpergröße' },
-      { key: 'weight', label: 'Gewicht' },
-      { key: 'cup_size', label: 'BH-Größe' },
-      { key: 'figure_type', label: 'Figurtyp' },
-      { key: 'waist', label: 'Taillenumfang' },
-      { key: 'hip', label: 'Hüftumfang' },
-      { key: 'inseam', label: 'Innenbeinlänge' }
-    ];
-    var n = data.length || 1;
-    var fhtml = '';
-    fields.forEach(function(f) {
-      var count = data.filter(function(r) { return r[f.key] !== null && r[f.key] !== undefined && r[f.key] !== ''; }).length;
-      var pct = Math.round(count / n * 100);
-      fhtml += '<div class="field-card"><div class="fname">' + f.label + '</div><div class="fpct">' + pct + '%</div><div class="fbar"><div class="bar-bg"><div class="bar-fill-blue" style="width:' + (pct * 1.2) + 'px;max-width:120px"></div></div></div><div style="font-size:11px;color:#888;margin-top:4px">' + count + ' von ' + n + '</div></div>';
-    });
-    document.getElementById('field-stats').innerHTML = fhtml;
-
-    var html = '';
-    Object.keys(stats).forEach(function(product) {
-      var sizes = stats[product];
-      var total = Object.values(sizes).reduce(function(a,b){return a+b;}, 0);
-      html += '<div class="section"><h2>' + product + ' <span style="font-weight:400;font-size:13px;color:#666;">(' + total + ' Empfehlungen)</span></h2><table><thead><tr><th>Größe</th><th>Anzahl</th><th>Anteil</th></tr></thead><tbody>';
-      Object.entries(sizes).sort(function(a,b){return b[1]-a[1];}).forEach(function(e) {
-        var pct = Math.round(e[1]/total*100);
-        html += '<tr><td><span class="badge">' + e[0] + '</span></td><td>' + e[1] + '</td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:' + (pct*1.2) + 'px;max-width:120px"></div></div>' + pct + '%</div></td></tr>';
+  fetch('/api/dashboard-data', { headers: {'x-dashboard-password': pwd} })
+    .then(function(res) {
+      if (res.status===401) { document.getElementById('err').textContent='Falsches Passwort'; return null; }
+      if (!res.ok) { document.getElementById('err').textContent='Fehler beim Laden'; return null; }
+      return res.json();
+    }).then(function(data) {
+      if (!data) return;
+      ALL_DATA = data;
+      document.getElementById('err').textContent = '';
+      document.getElementById('content').style.display = 'block';
+      document.getElementById('ts').textContent = 'Geladen: ' + new Date().toLocaleString('de-DE') + ' — ' + data.length + ' Einträge gesamt';
+      document.getElementById('c-total').textContent = data.length;
+      var tod = new Date(); tod.setHours(0,0,0,0);
+      var yes = new Date(tod); yes.setDate(yes.getDate()-1);
+      var todCount = data.filter(function(r){return new Date(r.created_at)>=tod}).length;
+      var yesCount = data.filter(function(r){var d=new Date(r.created_at);return d>=yes&&d<tod}).length;
+      document.getElementById('c-today').textContent = todCount;
+      var td = delta(todCount, yesCount);
+      document.getElementById('d-today').textContent = td.text + ' vs. gestern ('+yesCount+')';
+      document.getElementById('d-today').className = 'delta ' + td.cls;
+      var prods = {};
+      data.forEach(function(r){var t=r.product_title||r.product_id;if(t)prods[t]=1;});
+      document.getElementById('c-prods').textContent = Object.keys(prods).length;
+      renderFieldStats();
+      renderProdStats();
+      var rows = '';
+      data.slice(0,50).forEach(function(r) {
+        rows += '<tr><td style="white-space:nowrap;font-size:12px">'+new Date(r.created_at).toLocaleString('de-DE')+'</td><td style="font-size:12px">'+( r.product_title||'-')+'</td><td><span class="badge">'+(r.recommended_size||'-')+'</span></td><td>'+(r.figure_type||'-')+'</td><td>'+(r.cup_size||'-')+'</td><td>'+(r.height||'-')+'</td><td>'+(r.weight||'-')+'</td><td>'+(r.waist||'-')+'</td><td>'+(r.hip||'-')+'</td><td>'+(r.inseam||'-')+'</td></tr>';
       });
-      html += '</tbody></table></div>';
-    });
-    document.getElementById('stats').innerHTML = html;
-
-    var rows = '';
-    data.slice(0,50).forEach(function(r) {
-      rows += '<tr><td style="white-space:nowrap">' + new Date(r.created_at).toLocaleString('de-DE') + '</td><td>' + (r.product_title||'-') + '</td><td><span class="badge">' + (r.recommended_size||'-') + '</span></td><td>' + (r.figure_type||'-') + '</td><td>' + (r.cup_size||'-') + '</td><td>' + (r.height||'-') + '</td><td>' + (r.weight||'-') + '</td><td>' + (r.waist||'-') + '</td><td>' + (r.hip||'-') + '</td><td>' + (r.inseam||'-') + '</td></tr>';
-    });
-    document.getElementById('rows').innerHTML = rows;
-  }).catch(function(e) {
-    document.getElementById('err').textContent = 'Fehler: ' + e.message;
-  });
+      document.getElementById('rows').innerHTML = rows;
+    }).catch(function(e) { document.getElementById('err').textContent='Fehler: '+e.message; });
 });
 </script>
 </body>
