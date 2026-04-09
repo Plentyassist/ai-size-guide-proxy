@@ -57,7 +57,7 @@ async function load() {
   if (pwd !== 'tates2026') { document.getElementById('status').textContent = 'Falsches Passwort'; return; }
   document.getElementById('status').textContent = 'Lade...';
 
-  const res = await fetch(SUPABASE_URL + '/rest/v1/recommendations?select=*&order=created_at.desc&limit=500', {
+  const res = await fetch('/api/dashboard-data', { headers: { 'x-dashboard-password': pwd } });
     headers: { apikey: pwd === 'tates2026' ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhbXFlamtjbnRrem5xZ3p3eHpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyMjQ1ODQsImV4cCI6MjA1OTgwMDU4NH0.IG5MR0c8V_aVRFt6-9Pd0-vl8S5CWR4Ng8YAnO8wF7s' : '' }
   });
 
