@@ -156,7 +156,7 @@ app.get("/api/dashboard-data", async (req, res) => {
   const pwd = req.headers["x-dashboard-password"];
   if (pwd !== "tates2026") { return res.status(401).json({ error: "Unauthorized" }); }
   try {
-    const response = await fetch(SUPABASE_URL + "/rest/v1/recommendations?select=*&order=created_at.desc&limit=500", {
+    const response = await fetch(SUPABASE_URL + "/rest/v1/recommendations?select=*&order=created_at.desc&limit=10000", {
       headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY }
     });
     const data = await response.json();
