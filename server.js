@@ -160,8 +160,8 @@ app.get("/api/dashboard-data", async (req, res) => {
     let offset = 0;
     const pageSize = 1000;
     while (true) {
-      const r = await fetch(SUPABASE_URL + "/rest/v1/recommendations?select=*&order=created_at.desc&limit=" + pageSize + "&offset=" + offset, {
-        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY }
+      const r = await fetch(SUPABASE_URL + "/rest/v1/recommendations?select=*&order=created_at.desc", {
+        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY, Range: offset + "-" + (offset + pageSize - 1), "Range-Unit": "items", "Prefer": "count=none" }
       });
       const page = await r.json();
       if (!Array.isArray(page) || page.length === 0) break;
