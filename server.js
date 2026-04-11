@@ -156,11 +156,20 @@ app.get("/api/dashboard-data", async (req, res) => {
   const pwd = req.headers["x-dashboard-password"];
   if (pwd !== "tates2026") { return res.status(401).json({ error: "Unauthorized" }); }
   try {
-    const response = await fetch(SUPABASE_URL + "/rest/v1/recommendations?select=*&order=created_at.desc&limit=10000", {
-      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY }
-    });
-    const data = await response.json();
-    res.json(data);
+    let allData = [];
+    let offset = 0;
+    const pageSize = 1000;
+    while (true) {
+      const r = await fetch(SUPABASE_URL + "/rest/v1/recommendations?select=*&order=created_at.desc&limit=" + pageSize + "&offset=" + offset, {
+        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: "Bearer " + SUPABASE_SERVICE_KEY }
+      });
+      const page = await r.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      allData = allData.concat(page);
+      if (page.length < pageSize) break;
+      offset += pageSize;
+    }
+    res.json(allData);
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 

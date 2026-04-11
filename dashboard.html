@@ -158,8 +158,9 @@ function getCompLabel(type) {
   return 'vs. gleiche Zeitspanne davor';
 }
 
+function pts(s) { return new Date(s.replace(' ','T').replace(/\+\d{2}$/,'+00:00')); }
 function filterData(data, from, to) {
-  return data.filter(function(r) { var d=new Date(r.created_at); return d>=from && d<=to; });
+  return data.filter(function(r) { var d=pts(r.created_at); return d>=from && d<=to; });
 }
 
 function fmtDate(d) { return d.getDate()+'.'+(d.getMonth()+1)+'.'+d.getFullYear(); }
@@ -267,8 +268,8 @@ document.getElementById('btn').addEventListener('click', function() {
       document.getElementById('c-total').textContent = data.length;
       var tod = new Date(); tod.setHours(0,0,0,0);
       var yes = new Date(tod); yes.setDate(yes.getDate()-1);
-      var todCount = data.filter(function(r){return new Date(r.created_at)>=tod}).length;
-      var yesCount = data.filter(function(r){var d=new Date(r.created_at);return d>=yes&&d<tod}).length;
+      var todCount = data.filter(function(r){return pts(r.created_at)>=tod}).length;
+      var yesCount = data.filter(function(r){var d=pts(r.created_at);return d>=yes&&d<tod}).length;
       document.getElementById('c-today').textContent = todCount;
       var td = delta(todCount, yesCount);
       document.getElementById('d-today').textContent = td.text + ' vs. gestern ('+yesCount+')';
@@ -280,7 +281,7 @@ document.getElementById('btn').addEventListener('click', function() {
       renderProdStats();
       var rows = '';
       data.slice(0,50).forEach(function(r) {
-        rows += '<tr><td style="white-space:nowrap;font-size:12px">'+new Date(r.created_at).toLocaleString('de-DE')+'</td><td style="font-size:12px">'+( r.product_title||'-')+'</td><td><span class="badge">'+(r.recommended_size||'-')+'</span></td><td>'+(r.figure_type||'-')+'</td><td>'+(r.cup_size||'-')+'</td><td>'+(r.height||'-')+'</td><td>'+(r.weight||'-')+'</td><td>'+(r.waist||'-')+'</td><td>'+(r.hip||'-')+'</td><td>'+(r.inseam||'-')+'</td></tr>';
+        rows += '<tr><td style="white-space:nowrap;font-size:12px">'+pts(r.created_at).toLocaleString('de-DE')+'</td><td style="font-size:12px">'+( r.product_title||'-')+'</td><td><span class="badge">'+(r.recommended_size||'-')+'</span></td><td>'+(r.figure_type||'-')+'</td><td>'+(r.cup_size||'-')+'</td><td>'+(r.height||'-')+'</td><td>'+(r.weight||'-')+'</td><td>'+(r.waist||'-')+'</td><td>'+(r.hip||'-')+'</td><td>'+(r.inseam||'-')+'</td></tr>';
       });
       document.getElementById('rows').innerHTML = rows;
     }).catch(function(e) { document.getElementById('err').textContent='Fehler: '+e.message; });
