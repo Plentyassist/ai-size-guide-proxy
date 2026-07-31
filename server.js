@@ -12,6 +12,19 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const PORT = process.env.PORT || 3000;
 const SIZES = ['XXXL', 'XXL', 'XL', 'XS', 'S', 'M', 'L'];
 
+const SYSTEM_PROMPT = `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Duze die Kundin immer. Die Zielgruppe ist weiblich, 18-35 Jahre, modebewusst. Schreibe kurz, direkt und positiv — maximal 3 Saetze in der Erklaerung. Beziehe ALLE eingegebenen Werte in die Beurteilung ein: Koerpergroesse und Gewicht beeinflussen Proportionen und Kleidlaenge, BH-Groesse und Figurtyp den Sitz im Oberteil, Taille/Huefte den Sitz im unteren Teil. Erwaehne explizit welche Werte die Entscheidung beeinflusst haben.
+
+Regeln:
+- Halbmasse (half:true) muessen verdoppelt werden um den Umfang zu erhalten
+- BH-Groesse (z.B. 75C): Unterbrustmass + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
+- Figurtypen: A-Typ=schmale Schultern breite Huefte; H-Typ=Rechteck kaum Taillendefinition; O-Typ=rund Bauch dominiert; V-Typ=breite Schultern schmale Huefte; X-Form/Sanduhr=definierte Taille Brust und Huefte aehnlich. Wenn kein Figurtyp angegeben ignoriere dieses Feld. Nutze den Figurtyp fuer konstruktive Hinweise im fitNote.
+- Beruecksichtige construction_notes und fit_guidance aus den Produktdaten
+- Dehnlogik: Bei Elastan-Anteil dehnt sich der Stoff. Ein Produktmass das bis zu 5% kleiner ist als der Koerperwert sitzt IDEAL koerpernah. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Groesse bei der das Produktmass mindestens 92% des Koerperwertes erreicht — das ist kein Grenzfall sondern der ideale Sitz.
+- Kleidlaengen-Logik: Schritt 1: Bestimme Kleidtyp anhand Gesamtlaenge A in Groesse M: unter 85cm=kurzes Kleid (Mini gewollt), 85-100cm=knianahe Laenge, ueber 100cm=langes Kleid (Midi gewollt). Schritt 2: Berechne Kleidende ab Boden = Koerpergroesse der Kundin minus Kleidlaenge A der empfohlenen Groesse. Kniehoehe ab Boden: wenn Innenbeinlaenge angegeben = Innenbeinlaenge mal 0.55; sonst = Koerpergroesse mal 0.27 (Schaetzwert). Vergleiche Kleidende mit Kniehoehe: mehr als 15cm ueber Knie=Mini, 5-15cm ueber Knie=kurz, 5cm ueber bis 5cm unter Knie=knianahe, mehr als 5cm unter Knie=midi/lang. Schritt 3: Erwaehne die Kleidlaenge nur im fitNote wenn sie auffaellig vom gewollten Typ abweicht.
+- Gewicht-Logik: Nutze Gewicht zusammen mit Koerpergroesse um Proportionen einzuschaetzen. Priorisiere immer gemessene Umfaenge.
+- ALTERNATIVE GROESSE: Bei Elastan-Kleidern tendiere zur naechst-kleineren Groesse als Alternative. Nur wenn die naechst-kleinere Groesse unter 90% des Koerperwertes liegt, waehle die naechst-groessere.
+- WICHTIGSTE REGEL: Das Feld recommendedSize MUSS exakt die Groesse enthalten die du im Erklaerungstext als beste Wahl nennst. Die alternativeSize MUSS direkt neben der recommendedSize liegen. Pruefe dies vor der Ausgabe.`;
+
 function extractPrimarySize(text) {
   if (!text) return null;
   const sentences = text.split('.').map(s => s.trim()).filter(s => s.length > 0);
@@ -85,31 +98,41 @@ app.post('/api/size-recommendation', async (req, res) => {
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
         max_tokens: 1000,
+        system: [
+          {
+            type: 'text',
+            text: SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' }
+          }
+        ],
         messages: [{
           role: 'user',
-          content: `Du bist ein Passform-Assistent fuer Kleidung. Antworte ausschliesslich auf Deutsch. Duze die Kundin immer. Die Zielgruppe ist weiblich, 18-35 Jahre, modebewusst. Schreibe kurz, direkt und positiv — maximal 3 Saetze in der Erklaerung. Beziehe ALLE eingegebenen Werte in die Beurteilung ein: Koerpergroesse und Gewicht beeinflussen Proportionen und Kleidlaenge, BH-Groesse und Figurtyp den Sitz im Oberteil, Taille/Huefte den Sitz im unteren Teil. Erwaehne explizit welche Werte die Entscheidung beeinflusst haben.
-
-Kundenprofil: ${JSON.stringify(profile)}
-Produktmasse: ${JSON.stringify(measurements)}
-
-Regeln:
-- Halbmasse (half:true) muessen verdoppelt werden um den Umfang zu erhalten
-- BH-Groesse (z.B. 75C): Unterbrustmass + Cup-Zugabe (A=+10, B=+12, C=+14, D=+16, E=+18, F=+20cm) = Brustumfang
-- Figurtypen: A-Typ=schmale Schultern breite Huefte; H-Typ=Rechteck kaum Taillendefinition; O-Typ=rund Bauch dominiert; V-Typ=breite Schultern schmale Huefte; X-Form/Sanduhr=definierte Taille Brust und Huefte aehnlich. Wenn kein Figurtyp angegeben ignoriere dieses Feld. Nutze den Figurtyp fuer konstruktive Hinweise im fitNote.
-- Beruecksichtige construction_notes und fit_guidance aus den Produktdaten
-- Dehnlogik: Bei Elastan-Anteil dehnt sich der Stoff. Ein Produktmass das bis zu 5% kleiner ist als der Koerperwert sitzt IDEAL koerpernah. Erst ab mehr als 8% kleiner wird es zu eng. Empfehle die kleinste Groesse bei der das Produktmass mindestens 92% des Koerperwertes erreicht — das ist kein Grenzfall sondern der ideale Sitz.
-- Kleidlaengen-Logik: Schritt 1: Bestimme Kleidtyp anhand Gesamtlaenge A in Groesse M: unter 85cm=kurzes Kleid (Mini gewollt), 85-100cm=knianahe Laenge, ueber 100cm=langes Kleid (Midi gewollt). Schritt 2: Berechne Kleidende ab Boden = Koerpergroesse der Kundin minus Kleidlaenge A der empfohlenen Groesse. Kniehoehe ab Boden: wenn Innenbeinlaenge angegeben = Innenbeinlaenge mal 0.55; sonst = Koerpergroesse mal 0.27 (Schaetzwert). Vergleiche Kleidende mit Kniehoehe: mehr als 15cm ueber Knie=Mini, 5-15cm ueber Knie=kurz, 5cm ueber bis 5cm unter Knie=knianahe, mehr als 5cm unter Knie=midi/lang. Schritt 3: Erwaehne die Kleidlaenge nur im fitNote wenn sie auffaellig vom gewollten Typ abweicht.
-- Gewicht-Logik: Nutze Gewicht zusammen mit Koerpergroesse um Proportionen einzuschaetzen. Priorisiere immer gemessene Umfaenge.
-- ALTERNATIVE GROESSE: Bei Elastan-Kleidern tendiere zur naechst-kleineren Groesse als Alternative. Nur wenn die naechst-kleinere Groesse unter 90% des Koerperwertes liegt, waehle die naechst-groessere.
-- WICHTIGSTE REGEL: Das Feld recommendedSize MUSS exakt die Groesse enthalten die du im Erklaerungstext als beste Wahl nennst. Die alternativeSize MUSS direkt neben der recommendedSize liegen. Pruefe dies vor der Ausgabe.
-
-Antworte NUR mit einem JSON-Objekt ohne Markdown:
-{"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}`
+          content: [
+            {
+              type: 'text',
+              text: `Produktmasse: ${JSON.stringify(measurements)}`,
+              cache_control: { type: 'ephemeral' }
+            },
+            {
+              type: 'text',
+              text: `Kundenprofil: ${JSON.stringify(profile)}\n\nAntworte NUR mit einem JSON-Objekt ohne Markdown:\n{"recommendedSize":"...","alternativeSize":"...","explanation":"...","fitNote":"..."}`
+            }
+          ]
         }]
       })
     });
 
     const data = await response.json();
+
+    if (data.usage) {
+      console.log('Cache stats:', {
+        cache_creation: data.usage.cache_creation_input_tokens || 0,
+        cache_read: data.usage.cache_read_input_tokens || 0,
+        input: data.usage.input_tokens,
+        output: data.usage.output_tokens
+      });
+    }
+
     const text = data.content[0].text;
     const clean = text.replace(/```json|```/g, '').trim();
     const result = JSON.parse(clean);
@@ -174,4 +197,3 @@ app.get("/api/dashboard-data", async (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => console.log('Proxy running on port ' + PORT));
-
