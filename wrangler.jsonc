@@ -1,0 +1,15 @@
+{
+  "name": "ai-size-guide-proxy",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "account_id": "a953992afc0d815cdbf8761653dd1af0",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  // Nur public/ wird ausgeliefert (Dashboard), nicht der Repo-Ordner
+  "assets": { "directory": "./public" },
+  "rules": [{ "type": "Text", "globs": ["**/*.txt"], "fallthrough": true }],
+  "vars": {
+    "SUPABASE_URL": "https://pamqejkcntkznqgzwxzc.supabase.co"
+  }
+  // Secrets: CLAUDE_API_KEY, SUPABASE_SERVICE_KEY, DASHBOARD_PASSWORD
+}
